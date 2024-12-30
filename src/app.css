@@ -1,3 +1,47 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+/* width */
+::-webkit-scrollbar {
+	width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	background: rgb(119, 119, 119);
+	border-radius: 15px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+	background: gray;
+}
+
+body {
+	background-color: rgb(248, 247, 234);
+	transition-property: background-color;
+	transition: 0.2s;
+}
+
+@media (prefers-color-scheme: dark) {
+	body {
+		background-color: rgb(53, 51, 44);
+		color: white;
+	}
+	/* Handle */
+	::-webkit-scrollbar-thumb {
+		background: white;
+		border-radius: 15px;
+	}
+
+	/* Handle on hover */
+	::-webkit-scrollbar-thumb:hover {
+		background: gray;
+	}
+}
