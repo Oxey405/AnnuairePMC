@@ -2,16 +2,17 @@ export class Service {
     name: string;
     desc: string;
     imgURL: string = "" ;
-    tags: string[] = [];
+    tags: {id: string, name: string | null}[] = [];
     owners: string[];
     coordinates: {x: number, z: number};
     netherAddress: NetherAddress | undefined
 
-    constructor(name: string, desc: string, owners: string[], coords: { x: number; z: number; }, imgURL: string, netherAddr?: NetherAddress, tags?: string[]) {
+    constructor(name: string, desc: string, owners: string[], coords: { x: number; z: number; }, imgURL?: string | null, netherAddr?: NetherAddress, tags?: {id: string, name: string | null}[]) {
         this.name = name;
         this.desc = desc;
         if(tags)
         this.tags = tags;
+        if(imgURL)
         this.imgURL = imgURL;
         this.owners = owners;
         this.coordinates = coords;
@@ -67,13 +68,19 @@ function directionStr(dir: Direction) {
 }
 
 export enum Cardinal {
-    NORTH,
-    EAST,
-    SOUTH,
-    WEST
+    NORTH = "N",
+    EAST = "E",
+    SOUTH = "S",
+    WEST = "W"
 }
 
 export enum Direction {
-    LEFT,
-    RIGHT
+    LEFT = "L",
+    RIGHT = "R"
+}
+
+
+export interface QueryFilters {
+    types: string[],
+    query: string
 }
