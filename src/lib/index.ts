@@ -35,6 +35,14 @@ export class NetherAddress {
     toString() {
         return this.exit + " " + cardStr(this.cardinal) + " " + directionStr(this.direction)
     }
+
+    toJSON() {
+        return {
+            exit: this.exit,
+            cardinal: this.cardinal,
+            direction: this.direction
+        }
+    }
 }
 
 function cardStr(card: Cardinal) {
