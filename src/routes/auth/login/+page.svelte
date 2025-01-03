@@ -1,11 +1,14 @@
 <script>
-	import { supabase } from "$lib/supabase";
+	import { pb } from "$lib/pocketbase";
 	import { KeyRound } from "lucide-svelte";
 
     async function signInWithDiscord() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const authData = await pb.collection('users').authWithOAuth2({
         provider: 'discord',
+        scopes: ['identify', 'guilds'],
     })
+    console.log(authData)
+    window.location.href = "/"
 }
 
 
@@ -16,12 +19,11 @@
     </a>
     <h1 class="text-2xl text-center  ">Identifiez-vous pour gérer ou inscrire votre service à l'annuaire !</h1>
 
-    <button on:click={signInWithDiscord} class="discord-login p-3 rounded-lg flex flex-row align-middle items-center" ><span class="p-2"><KeyRound /></span> S'identifier avec Discord</button>
+    <button on:click={signInWithDiscord} class="discord-login bg-teal-800 p-3 rounded-lg flex flex-row align-middle items-center" ><span class="p-2"><KeyRound /></span> S'identifier</button>
 </div>
 
 <style>
     .discord-login {
-        background-color: #5865F2;
         color: #FFFFFF;
         margin-top: 2em;
     }

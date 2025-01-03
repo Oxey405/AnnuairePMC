@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Cardinal, Direction, NetherAddress } from '$lib';
-import { supabase } from '$lib/supabase';
-	import type { User } from '@supabase/supabase-js';
+	import { pb } from '$lib/pocketbase';
 	import { MapPin, Navigation, Tag, UserRound } from 'lucide-svelte';
     import { writable, type Writable } from 'svelte/store';
 
@@ -18,22 +17,18 @@ import { supabase } from '$lib/supabase';
 	let imgURL: string;
 
 	let available_tags: { [index: string]: string } = {};
+	let user = pb.authStore.record;
 
-	let user: null | User = null;
-    supabase.auth.getSession().then(async (data) => {
-        user = (await supabase.auth.getUser()).data.user
-    }).catch(() => {
-        alert("Vous n'êtes pas connecté. Vous ne pourrez donc pas faire de modification.")
-    })
 
-	supabase
-		.from('Tags')
-		.select('*')
-		.then((response) => {
-			response.data?.forEach((tag) => {
-				if (tag.id != null && tag.name != null) available_tags[tag.id] = tag.name;
-			});
-		});
+	async function getTags() {
+        let raw_types = await pb.collection("tags").getFullList();
+        raw_types.forEach(type => {
+            console.log(type)
+            available_tags[type.id] = type.name
+        });
+    }
+
+    getTags()
 
 	function updateImage() {
 		console.log('lol');
@@ -52,43 +47,37 @@ import { supabase } from '$lib/supabase';
         tags.set(t)
     }
 
-	async function createRecord() {
-		if(!user) {
-			alert("Vous n'êtes pas connecté.")
+	async function addService() {
+		let addr = new NetherAddress(nether_exit, nether_card as Cardinal, nether_dir as Direction)
+
+		if(!pb.authStore.isValid) {
+			alert("Vous n'êtes pas connecté. Merci de commencer par vous connecter avant d'enregistrer un service.")
 			return;
 		}
 
-		let img_name = `${user.id}/${name}-thumbnail-${(new Date()).toISOString().substring(0, 10)}`;
-		const upload_result = await supabase.storage.from("thumbnails").upload(img_name, files[0])
-
-		if(upload_result.error) {
-			alert("Impossible d'envoyer l'image de couverture sur le serveur. Réessayez plus tard.")
+		try {
+			let result = await pb.collection('places').create({
+				name: name,
+				desc: desc,
+				authors: owners,
+				coord_x: coord_x,
+				coord_z: coord_z,
+				netherAddr: addr.toJSON(),
+				added_by: user!.id,
+				img: files[0],
+				tags: $tags
+			})
+		} catch (error) {
+			alert("Une erreur est survenue lors de l'ajout de l'enregistrement")
+			console.error(error)
 			return;
 		}
 
-		const url = supabase.storage.from("thumbnails").getPublicUrl(img_name)
-		
-		
-		let nether_addr = new NetherAddress(nether_exit, (nether_card as Cardinal), (nether_dir as Direction))
-		const { error } = await supabase.from('Places').insert({
-			added_by: user!.id,
-			name: name,
-			desc: desc,
-			owners: owners,
-			imgURL: url.data.publicUrl,
-			coord_x: coord_x,
-			coord_z: coord_z,
-			netherAddr: nether_addr.toJSON()
-		})
+		alert("Opération effectuée avec succès.")
+		window.location.href = "/"
 
-		if(error) {
-			alert("Une erreur est survenue lors de la création de l'enregistrement. Réessayez plus tard.")
-			return;
-		}
-
-		alert("L'enregistrement c'est effectué avec succès.")
-		window.location.href = "/dashboard"
 	}
+
 
 </script>
 
@@ -146,7 +135,7 @@ import { supabase } from '$lib/supabase';
 		<input bind:value={coord_z} class="rounded p-1 m-1 text-black whitespace-nowrap" name="z" type="number">
 
 	</span>
-	<button on:click={() => {createRecord()}} class="p-3 m-3 rounded-lg bg-teal-800">
+	<button on:click={() => {addService()}} class="p-3 m-3 rounded-lg bg-teal-800">
 		Enregister le service
 	</button>
 </div>

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { Cardinal, Direction, NetherAddress, Service, type QueryFilters } from '$lib';
-	import { supabase } from '$lib/supabase';
 	import type { QueryData } from '@supabase/supabase-js';
 	import ServiceElem from './ServiceElem.svelte';
 	import type { Writable } from 'svelte/store';
+	import { pb } from '$lib/pocketbase';
+	import { Server } from 'lucide-svelte';
 
 	function isNetherAddrJSON(
 		obj: any
@@ -19,72 +20,42 @@
 	export let searchQuery: Writable<QueryFilters>;
 
     let prevQuery = ""
-	let tagsOnPlaces = supabase.from('Places').select('*, tags:Tags(*)');
-	$: if ($searchQuery.query != prevQuery) {
-        prevQuery = $searchQuery.query
-		tagsOnPlaces.textSearch('name', $searchQuery.query);
-        fetchData()
-        tagsOnPlaces = supabase.from('Places').select('*, tags:Tags(*)');
+
+	$: if($searchQuery) { getData() }
+
+	async function getData() {
+		let data;
+		let filter = ''
+
+		if($searchQuery.types.length > 0) {
+			filter = "(" + $searchQuery.types.map(type => `tags?~"${type}"`).join(' && ') + ")"
+		}
+
+		if($searchQuery.query.length > 0) {
+			let queryTerms = $searchQuery.query.split(' ');
+			if(filter != "") {
+				filter += "&&"
+			}
+			filter += `${queryTerms.map(term => `name?~"${term}"`).join(' || ')}`
+		}
+
+		
+		data = await pb.collection("places").getFullList({expand: 'tags', filter: filter})
+
+		services = data.map(service => {
+			let tags: {id: string, name: string}[] = []
+			if(service.expand && service.expand.tags) {
+				service.expand.tags.forEach((tag: { id: string ; name: string; }) => {
+					tags.push({id: tag.id, name: tag.name})
+				})
+			}
+			let url = pb.files.getURL(service, service.img)
+			let nether_addr = new NetherAddress(service.netherAddr.exit, service.netherAddr.cardinal, service.netherAddr.direction)
+			return new Service(service.name, service.desc, service.authors, {x: service.coord_x, z: service.coord_z}, url, nether_addr, tags)
+		})
 	}
 
-    $: if($searchQuery.query == "" && $searchQuery.types.length == 0) {
-        fetchData()
-    }
 
-    $: if($searchQuery.types.length > 0) {
-        console.log($searchQuery.types)
-        tagsOnPlaces = supabase.from('Places').select(`*, tags:Tags!inner(id, name)`).eq('tags.id', $searchQuery.types[0]);
-        fetchData()
-        tagsOnPlaces = supabase.from('Places').select('*, tags:Tags(*)');
-
-    }
-
-
-	function fetchData() {
-		type PlacesWithTag = QueryData<typeof tagsOnPlaces>;
-
-		tagsOnPlaces.then((response) => {
-			if (response.error) {
-				// alert("Une erreur est survenue lors de la récupération de l'annuaire. Si cela ce reproduit : contactez le webmestre.")
-				console.error(response.error);
-			}
-			if (response.data == null || response.data == undefined) {
-				// alert("Une erreur est survenue lors de la récupération de l'annuaire")
-			}
-			const data: PlacesWithTag = response.data!;
-			services = data.map((raw) => {
-				let addr = null;
-                console.log(raw)
-				if (typeof raw.netherAddr == 'object' && raw.netherAddr != null) {
-					if (isNetherAddrJSON(raw.netherAddr)) {
-						let tags: { id: string; name: string | null }[] = [];
-						tags = raw.tags;
-						addr = new NetherAddress(
-							raw.netherAddr['exit'],
-							raw.netherAddr['cardinal'] as Cardinal,
-							raw.netherAddr['direction'] as Direction
-						);
-						return new Service(
-							raw.name,
-							raw.desc,
-							raw.owners,
-							{ x: raw.coord_x, z: raw.coord_z },
-							raw.imgURL,
-							addr,
-							tags
-						);
-					}
-				}
-				return new Service(
-					raw.name,
-					raw.desc,
-					raw.owners,
-					{ x: raw.coord_x, z: raw.coord_z },
-					raw.imgURL
-				);
-			});
-		});
-	}
 </script>
 
 <div

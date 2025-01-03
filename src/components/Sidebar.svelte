@@ -1,9 +1,6 @@
 <script lang="ts">
 	import type { QueryFilters } from "$lib";
-	import type { Database } from "$lib/database.types";
-	import { supabase } from "$lib/supabase";
-	import type { Session, User } from "@supabase/supabase-js";
-	import type { SupabaseAuthClient } from "@supabase/supabase-js/dist/module/lib/SupabaseAuthClient";
+	import { pb } from "$lib/pocketbase";
 	import { writable, type Writable } from "svelte/store";
 
     let types: {[index: string]: string} = {}
@@ -12,6 +9,16 @@
     Object.keys(types).forEach(key => {
         checkedTypes.set(key, false)
     })
+
+    async function getTags() {
+        let raw_types = await pb.collection("tags").getFullList();
+        raw_types.forEach(type => {
+            console.log(type)
+            types[type.id] = type.name
+        });
+    }
+
+    getTags()
 
     export let searchQuery: Writable<QueryFilters>;
 
@@ -36,23 +43,9 @@
         }
 
     }
+    
+    let user = pb.authStore.record
 
-
-    supabase.from('Tags').select('*').then((response) => {
-        response.data?.forEach(tag => {
-            if(tag.id != null && tag.name != null)
-            types[tag.id] = tag.name
-        })
-    })
-
-    let session: null | Session = null;
-    let user: null | User = null;
-    supabase.auth.getSession().then(async (data) => {
-        session = data.data.session
-        user = (await supabase.auth.getUser()).data.user
-    }).catch(() => {
-        console.log("not logged in")
-    })
 
 </script>
 
@@ -61,11 +54,11 @@
     <a class="text-center mb-3" href="/">
         <h1 class="text-4xl">Annuaire de PlayMC</h1>
     </a>
-    {#if user}
+    {#if user && pb.authStore.isValid}
     <p>Connecté en tant que</p>
     <span class="flex flex-row items-center m-2">
-        <img class="rounded-lg w-12 mr-1" src="{user.user_metadata.picture}" alt="">
-        <p>{user.user_metadata.custom_claims.global_name}</p>
+        <img class="rounded-lg w-12 mr-1" src="{user.imgURL}" alt="">
+        <p class="ml-1">{user.username}</p>
         <a class="p-3  m-3 rounded-lg bg-teal-800" href="/dashboard">+</a>
     </span>
     {:else}
