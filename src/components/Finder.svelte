@@ -5,6 +5,7 @@
 	import type { Writable } from 'svelte/store';
 	import { pb } from '$lib/pocketbase';
 	import { Server } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 
 	function isNetherAddrJSON(
 		obj: any
@@ -20,10 +21,12 @@
 	export let searchQuery: Writable<QueryFilters>;
 
     let prevQuery = ""
+	let fetchLock = false;
 
-	$: if($searchQuery) { getData() }
+
 
 	async function getData() {
+		fetchLock = true;
 		let data;
 		let filter = ''
 
@@ -53,14 +56,19 @@
 			let nether_addr = new NetherAddress(service.netherAddr.exit, service.netherAddr.cardinal, service.netherAddr.direction)
 			return new Service(service.name, service.desc, service.authors, {x: service.coord_x, z: service.coord_z}, url, nether_addr, tags)
 		})
+
+		fetchLock = false;
 	}
 
 
 </script>
 
 <div
-	class="flex h-screen w-full flex-row flex-wrap content-start items-start justify-center overflow-y-auto pt-10"
+	class="flex h-screen w-full flex-row flex-wrap content-start items-start justify-center overflow-y-auto pt-10 pb-10"
 >
+	{#await getData()}
+		<p>chargement...</p>
+	{:then}
 	{#each services as service}
 		<ServiceElem {service}></ServiceElem>
 	{/each}
@@ -68,5 +76,6 @@
     {#if services.length == 0}
         <p>Aucun résultat ne correspond à votre recherche :/</p>
     {/if}
+	{/await}
 
 </div>
