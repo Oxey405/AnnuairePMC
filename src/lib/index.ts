@@ -6,8 +6,9 @@ export class Service {
     owners: string[];
     coordinates: {x: number, z: number};
     netherAddress: NetherAddress | undefined
+    id: string | null = null;
 
-    constructor(name: string, desc: string, owners: string[], coords: { x: number; z: number; }, imgURL?: string | null, netherAddr?: NetherAddress, tags?: {id: string, name: string | null}[]) {
+    constructor(name: string, desc: string, owners: string[], coords: { x: number; z: number; }, imgURL?: string | null, netherAddr?: NetherAddress, tags?: {id: string, name: string | null}[], id?: string) {
         this.name = name;
         this.desc = desc;
         if(tags)
@@ -17,6 +18,8 @@ export class Service {
         this.owners = owners;
         this.coordinates = coords;
         this.netherAddress = netherAddr;
+        if(id)
+        this.id = id;
     }
 
 }
@@ -43,6 +46,7 @@ export class NetherAddress {
             direction: this.direction
         }
     }
+
 }
 
 function cardStr(card: Cardinal) {

@@ -5,8 +5,10 @@
 
 	let owned_services: Service[] = [];
 
+    let user = pb.authStore.record;
+
 	async function getData() {
-		let data = await pb.collection('places').getFullList({ expand: 'tags', filter: '' });
+		let data = await pb.collection('places').getFullList({ expand: 'tags', filter: `added_by="${user?.id}"` });
 
 		owned_services = data.map((service) => {
 			let tags: { id: string; name: string }[] = [];
@@ -28,12 +30,37 @@
 				{ x: service.coord_x, z: service.coord_z },
 				url,
 				nether_addr,
-				tags
+				tags,
+                service.id
 			);
 		});
 	}
 
-    getData();
+    async function deleteRecord(recordID: string | null) {
+        if(recordID == null) {
+            return
+        }
+
+        let choice = confirm(`Êtes-vous certain de vouloir supprimer cette adresse ? (Ce choix ne peut pas être annulé)`)
+
+        if(!choice) {
+            return;
+        }
+
+        try {
+            let result = await pb.collection('places').delete(recordID);
+        } catch (error) {
+            console.error(error);
+            alert("L'enregistrement n'a pas pu être supprimé.");
+            return;
+        }
+
+        alert("L'Enregistrement a bien été supprimé !");
+
+        getData()
+
+    }
+
 </script>
 
 {#if pb.authStore.isValid}
@@ -49,7 +76,23 @@
             >
         </div>
         <h2 class="text-2xl">Vos adresses enregistrées</h2>
-        <div></div>
+        <div>
+            {#await getData()}
+                <p>Récupération de vos adresses...</p>
+            {:then} 
+                {#each owned_services as service}
+                <div class="flex flex-col items-center rounded-lg bg-gray-400 p-4 m-2 dark:bg-slate-600">
+                    <img src="{service.imgURL}" class="w-96 rounded-lg" alt="">
+                    <p class="text-2xl m-2">{service.name}</p>
+                    <span>
+                        <button title="Pas encore disponible" disabled class="bg-white text-black rounded p-1 m-1 disabled:bg-gray-500 disabled:cursor-not-allowed">Modifier</button>
+                        <button on:click={() => deleteRecord(service.id)} class="bg-red-800 text-white rounded p-1 m-1 disabled:bg-red-950 disabled:cursor-not-allowed">Supprimer</button>
+
+                    </span>
+                </div>    
+                {/each}
+            {/await}
+        </div>
     </div>
 {:else}
     <h1 class="text-4xl">Connectez-vous pour commencer !</h1>
