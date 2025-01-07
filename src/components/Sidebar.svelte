@@ -63,17 +63,19 @@
         <a class="p-3  m-3 rounded-lg bg-teal-800" href="/auth/login">S'identifier</a>
     {/if}
     <input class="rounded-md p-1 text-black w-11/12" type="text" placeholder="Rechercher" bind:value={$searchQuery.query}>
-    <div class="section flex-col pl-1 lg:h-full h-32 overflow-auto pb-2">
+    <div class="section flex-col pl-1 lg:h-full h-32 w-full flex-wrap pb-2">
         <h2 class="text-xl font-bold p-1 pl-0" >Type</h2>
         {#await getTags()}
             <p>Chargement des tags...</p>
         {:then} 
-        {#each Object.entries(types) as type}
-        <div class="selection-inputs pl-2">
-            <input type="checkbox" name="{type[0]}" on:change={checkType} id="">
-            <label for="{type[0]}">{type[1]}</label>        
-        </div>
-        {/each}
+            <div class="flex flex-wrap lg:flex-nowrap lg:block">
+                {#each Object.entries(types) as type}
+                <div class="selection-inputs pl-2">
+                    <input type="checkbox" name="{type[0]}" on:change={checkType} id="{type[0]}">
+                    <label for="{type[0]}">{type[1]}</label>        
+                </div>
+                {/each}
+            </div>
         {/await}
     </div>
 </div>
