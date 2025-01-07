@@ -12,8 +12,7 @@
 </script>
 
 
-<div class="wrapper flex flex-row items-center h-full w-full">
-
-<Filters bind:searchQuery={queryFilter}></Filters>
-<Finder bind:searchQuery={queryFilter}></Finder>
+<div class="wrapper flex lg:flex-row flex-col items-center h-full w-full">
+	<Filters bind:searchQuery={queryFilter}></Filters>
+	<Finder bind:searchQuery={queryFilter}></Finder>
 </div>

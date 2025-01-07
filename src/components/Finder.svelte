@@ -64,7 +64,7 @@
 </script>
 
 <div
-	class="flex h-screen w-full flex-row flex-wrap content-start items-start justify-center overflow-y-auto pt-10 pb-10"
+	class="flex lg:h-screen h-fit w-full flex-row flex-wrap content-start items-start justify-center overflow-y-auto pt-10 pb-10"
 >
 	{#await getData()}
 		<p>chargement...</p>
