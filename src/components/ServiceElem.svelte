@@ -10,7 +10,7 @@
 </script>
 
 <div class="m-8 mb-1 flex w-full lg:flex-row items-center flex-col rounded-lg bg-gray-400 p-5 dark:bg-slate-600">
-	<img class="mr-4 h-full w-96 rounded-lg" src={service.imgURL} alt={service.name + ' cover'} />
+	<img class="lg:mr-4 h-full w-96 rounded-lg" src={service.imgURL} alt={service.name + ' cover'} />
 	<div>
 		<h2 class="mt-1 text-2xl">{service.name}</h2>
 		<p class="ml-3 mt-1 h-12 w-full overflow-auto">
