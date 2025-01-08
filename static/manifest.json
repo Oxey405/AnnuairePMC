@@ -1,0 +1,27 @@
+{
+    "short_name": "Annuaire de PMC",
+    "name": "pmc-annuaire",
+    "start_url": "/",
+    "icons": [{
+        "src": "logo_x512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+        },
+        {
+            "src": "logo.png",
+            "type": "image/png",
+            "sizes": "256x256"
+        },
+        {
+            "src": "logo_greyscale.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "monochrome"
+        }
+    ],
+    "background_color": "#35332c",
+    "display": "standalone",
+    "description": "La liste des services, adresses et autres sur PlayMC.fr",
+    "scope": "/"
+
+}
