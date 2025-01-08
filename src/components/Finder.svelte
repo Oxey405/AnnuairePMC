@@ -52,7 +52,7 @@
 					tags.push({id: tag.id, name: tag.name})
 				})
 			}
-			let url = pb.files.getURL(service, service.img)
+			let url = pb.files.getURL(service, service.img, {'thumb': '512x0'})
 			let nether_addr = new NetherAddress(service.netherAddr.exit, service.netherAddr.cardinal, service.netherAddr.direction)
 			return new Service(service.name, service.desc, service.authors, {x: service.coord_x, z: service.coord_z}, url, nether_addr, tags)
 		})

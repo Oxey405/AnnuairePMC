@@ -11,6 +11,9 @@
 
 </script>
 
+<svelte:head>
+	<title>Annuaire de PlayMC</title>
+</svelte:head>
 
 <div class="wrapper flex lg:flex-row flex-col items-center h-full w-full">
 	<Filters bind:searchQuery={queryFilter}></Filters>

@@ -63,6 +63,10 @@
 
 </script>
 
+<svelte:head>
+	<title>Tableau de bord | Annuaire de PlayMC</title>
+</svelte:head>
+
 {#if pb.authStore.isValid}
     <div class="flex h-screen flex-col items-center justify-center">
         <h1 class="text-4xl">Bienvenue sur le tableau de bord</h1>
