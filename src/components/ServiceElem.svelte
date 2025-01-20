@@ -8,14 +8,17 @@
 
 	let { service }: Props = $props();
 </script>
-
 <div class="m-8 mb-1 flex w-full lg:flex-row items-center flex-col rounded-lg bg-gray-400 p-5 dark:bg-slate-600">
+
 	<img class="lg:mr-4 h-full w-96 rounded-lg" src={service.imgURL} alt={service.name + ' cover'} />
+
 	<div>
+		<a href="/p/{service.id}" target="_blank">
 		<h2 class="mt-1 text-2xl">{service.name}</h2>
 		<p class="ml-3 mt-1 h-12 w-full overflow-auto">
 			{service.desc.substring(0, 300) + (service.desc.length > 300 ? '...' : '')}
 		</p>
+		</a>
 		<span class="">
 			<span class="m-2 ml-3 flex items-center">
 				<span class="mr-3">

@@ -47,7 +47,7 @@
 
 </script>
 
-<div class="flex flex-col items-center sticky top-0 left-0 filters-container bg-gray-400 dark:bg-slate-700 lg:h-screen h-1/4 lg:w-1/4 w-screen pb-4 lg:pb-0 transition-colors">
+<div class="flex flex-col items-center sticky top-0 left-0 filters-container bg-gray-400 dark:bg-slate-700 lg:h-screen h-1/4 lg:w-1/4 w-screen pb-4 lg:pb-0 transition-colors duration-150">
     <!-- <p class="text-center text-2xl text-gray-900 dark:text-gray-100">Annuaire de PlayMC</p> -->
     <a class="text-center mb-3" href="/">
         <h1 class="text-4xl">Annuaire de PlayMC</h1>
@@ -60,7 +60,7 @@
         <a class="p-3  m-3 rounded-lg bg-teal-800" href="/dashboard">+</a>
     </span>
     {:else}
-        <a class="p-3  m-3 rounded-lg bg-teal-800" href="/auth/login">S'identifier</a>
+        <a class="p-3 m-3 rounded-lg bg-teal-600 dark:bg-teal-800" href="/auth/login">S'identifier</a>
     {/if}
     <input class="rounded-md p-1 text-black w-11/12" type="text" placeholder="Rechercher" bind:value={$searchQuery.query}>
     <div class="section flex-col pl-1 lg:h-full h-32 w-full flex-wrap pb-2">

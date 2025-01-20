@@ -61,6 +61,10 @@
 
     }
 
+    async function openEditor(recordID: string | null) {
+        window.location.href = `/dashboard/edit/${recordID}`
+    }
+
 </script>
 
 <svelte:head>
@@ -89,7 +93,7 @@
                     <img src="{service.imgURL}" class="w-96 rounded-lg" alt="">
                     <p class="text-2xl m-2">{service.name}</p>
                     <span>
-                        <button title="Pas encore disponible" disabled class="bg-white text-black rounded p-1 m-1 disabled:bg-gray-500 disabled:cursor-not-allowed">Modifier</button>
+                        <button on:click={() => openEditor(service.id)} title="Pas encore disponible" class="bg-white text-black rounded p-1 m-1 disabled:bg-gray-500 disabled:cursor-not-allowed">Modifier</button>
                         <button on:click={() => deleteRecord(service.id)} class="bg-red-800 text-white rounded p-1 m-1 disabled:bg-red-950 disabled:cursor-not-allowed">Supprimer</button>
 
                     </span>
