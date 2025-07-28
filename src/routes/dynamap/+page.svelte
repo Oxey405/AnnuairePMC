@@ -1,16 +1,19 @@
 <script lang="ts">
-	import { ArrowDownWideNarrow, MessageCircleWarning, TriangleAlert } from "lucide-svelte";
+	import { ArrowDownWideNarrow, MessageCircleWarning, TriangleAlert, X } from "lucide-svelte";
 	import { onMount } from "svelte";
 
 
     let canvas: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D | null = null;
 
-    let cache: {[x: number]: {[z: number]: HTMLImageElement}} = {}
+    let cache: {[zoom: number]: {[x: number]: {[z: number]: HTMLImageElement}}} = {}
 
     const X_ABS_BOUND = 16
     const Z_ABS_BOUND = 16
-    const IMG_SQUARE_DIM = 500
+    const X_ABS_BOUND_LOW = 4
+    const Z_ABS_BOUND_LOW = 4
+    const IMG_SQUARE_DIM = 501
+    const LOWRES_ZOOM_THRESHOLD = 0.5
 
 
     let panning = false
@@ -39,21 +42,49 @@
     
 
     function getDynamapImageURL(x: number, z: number) {
-        if(x in cache && z in cache[x]) {
-            return cache[x][z]
+        let zoom_img = zoom_level <= LOWRES_ZOOM_THRESHOLD ? 2 : 1
+        if(zoom_img in cache && x in cache[zoom_img] && z in cache[zoom_img][x]) {
+            return cache[zoom_img][x][z]
         }
         let img = new Image()
-        img.src = `https://dynmap.play-mc.fr/bluemap/serveur27/maps/monde2/tiles/1/x${x}/z${z}.png`
-        if(!(x in cache)) {
-            cache[x] = {}
+
+
+        img.src = `https://dynmap.play-mc.fr/bluemap/serveur27/maps/monde2/tiles/${zoom_img}/x${x}/z${z}.png`
+        if(!(zoom_img in cache)) {
+            cache[zoom_img] = {}
         }
-        cache[x][z] = img
+        if(!(x in cache[zoom_img])) {
+            cache[zoom_img][x] = {}
+        }
+        cache[zoom_img][x][z] = img
         return img
     }
 
-    function drawImageTile(ctx: CanvasRenderingContext2D, x: number, z: number, off_x: number, off_y: number) {
+    function pointInView(x: number, y: number, off_x: number, off_y: number) {
+        return true
+                 
+    }
 
-        ctx.drawImage(getDynamapImageURL(x, z), 0, 0, IMG_SQUARE_DIM, IMG_SQUARE_DIM, x * IMG_SQUARE_DIM + off_x, z * IMG_SQUARE_DIM + off_y, IMG_SQUARE_DIM, IMG_SQUARE_DIM)
+    function drawImageTile(ctx: CanvasRenderingContext2D, x: number, z: number, off_x: number, off_y: number) {
+        if(!pointInView(x * IMG_SQUARE_DIM, z * IMG_SQUARE_DIM, off_x, off_y)) {
+            return
+        }
+        let img = getDynamapImageURL(x, z)
+        try {
+            ctx.save()
+            let zoom_img = zoom_level <= LOWRES_ZOOM_THRESHOLD ? 2 : 1
+
+            if (zoom_level <= LOWRES_ZOOM_THRESHOLD) {
+                ctx.scale(6, 6)
+            }
+            ctx.font = "48px sans-serif";
+            ctx.fillStyle = "white"
+            ctx.drawImage(img, 0, 0, IMG_SQUARE_DIM, IMG_SQUARE_DIM, x * IMG_SQUARE_DIM, z * IMG_SQUARE_DIM, IMG_SQUARE_DIM, IMG_SQUARE_DIM)
+            ctx.fillText(`${x}:${z}`, IMG_SQUARE_DIM, x * IMG_SQUARE_DIM, z)
+            ctx.restore()
+        } catch (error) {
+            // do nothing we don't care
+        }
 
     }
 
@@ -69,8 +100,18 @@
         ctx.scale(zoom_level, zoom_level)
         ctx.translate(off_x, off_y)
 
-        for (let x = -X_ABS_BOUND; x < X_ABS_BOUND; x++) {
-            for (let z = -Z_ABS_BOUND; z < Z_ABS_BOUND; z++) {
+        let zoom_img = zoom_level <= LOWRES_ZOOM_THRESHOLD ? 2 : 1
+        let x_bound = X_ABS_BOUND
+        let z_bound = Z_ABS_BOUND
+
+        if(zoom_img == 2) {
+            x_bound = X_ABS_BOUND_LOW
+            z_bound = Z_ABS_BOUND_LOW
+        }
+
+
+        for (let x = -x_bound; x < x_bound; x++) {
+            for (let z = -z_bound; z < z_bound; z++) {
                 drawImageTile(ctx, x, z, 0, 0)
             }
         }
@@ -132,8 +173,17 @@
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight
         ctx = canvas.getContext('2d')
+        if(ctx) {
+            ctx.imageSmoothingEnabled = false
+
+        }
         document.addEventListener("touchstart", (ev) => {
             alert("Salut! La dynamap ne fonctionne pas avec les écrans tactiles pour l'instant. Réferrez-vous à la carte sur un ordinateur !")
+        })
+
+        document.addEventListener("resize", (ev) => {
+            canvas.width = window.innerWidth
+            canvas.height = window.innerHeight
         })
 
         document.addEventListener("wheel", (ev) => {
