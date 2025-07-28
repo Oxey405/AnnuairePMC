@@ -57,7 +57,7 @@
     <span class="flex flex-row items-center m-2">
         <img class="rounded-lg w-12 mr-1" src="{user.imgURL}" alt="">
         <p class="ml-1">{user.username}</p>
-        <a class="p-3  m-3 rounded-lg bg-teal-800" href="/dashboard">+</a>
+        <a class="p-3  m-3 rounded-lg bg-teal-800" href="/dashboard">Gérer</a>
     </span>
     {:else}
         <a class="p-3 m-3 rounded-lg bg-teal-600 dark:bg-teal-800" href="/auth/login">S'identifier</a>

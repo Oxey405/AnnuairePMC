@@ -23,7 +23,6 @@
 	async function getTags() {
         let raw_types = await pb.collection("tags").getFullList();
         raw_types.forEach(type => {
-            console.log(type)
             available_tags[type.id] = type.name
         });
     }
@@ -31,7 +30,6 @@
     getTags()
 
 	function updateImage() {
-		console.log('lol');
 		let reader = new FileReader();
 		reader.readAsDataURL(files[0]);
 		reader.onload = () => {
@@ -41,7 +39,6 @@
 
     let tagToAdd: string = "";
     function addTag() {
-        console.log(tagToAdd)
         let t = $tags;
         t.push(tagToAdd)
         tags.set(t)

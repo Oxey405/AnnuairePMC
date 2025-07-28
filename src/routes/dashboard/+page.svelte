@@ -75,7 +75,7 @@
     <div class="flex h-screen flex-col items-center justify-center">
         <h1 class="text-4xl">Bienvenue sur le tableau de bord</h1>
         <p class="text-center">
-            Gérez et ajoutez des enregistrements dans l'annuaire.<br />Attetion : De grands pouvoirs
+            Gérez et ajoutez des enregistrements dans l'annuaire.<br />Attention : De grands pouvoirs
             impliquent de grandes responsabilités !
         </p>
         <div class="p-3">

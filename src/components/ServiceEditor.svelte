@@ -124,8 +124,6 @@
 				>
 			{/each}
 		</div>
-		{/await}
-		
 		<span class="flex w-1/4 min-w-fit flex-row flex-wrap">
 			<select
 				bind:value={tagToAdd}
@@ -138,6 +136,9 @@
 			</select>
 			<button class="m-1 rounded bg-white p-1 text-black" on:click={addTag}>Ajouter</button>
 		</span>
+		{/await}
+		
+		
 	</span>
 	<span class="flex w-10/12 flex-row items-center">
 		<UserRound />
