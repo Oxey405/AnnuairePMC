@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { ArrowDownWideNarrow, MessageCircleWarning, TriangleAlert, X } from "lucide-svelte";
+	import { ArrowDownWideNarrow, Coins, MessageCircleWarning, TriangleAlert, X } from "lucide-svelte";
 	import { onMount } from "svelte";
+    import location_pin from "$lib/assets/location_pin.svg";
 
+    let location_pin_img: HTMLImageElement | null;
 
     let canvas: HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D | null = null;
@@ -13,7 +15,7 @@
     const X_ABS_BOUND_LOW = 4
     const Z_ABS_BOUND_LOW = 4
     const IMG_SQUARE_DIM = 501
-    const LOWRES_ZOOM_THRESHOLD = 0.5
+    const LOWRES_ZOOM_THRESHOLD = 0
 
 
     let panning = false
@@ -32,7 +34,7 @@
     let pan_diff_y = 0
 
     let zoom_level = 1
-
+    let smooth_zoom = 1
 
 
     let prev_off_x = 0
@@ -41,8 +43,7 @@
     let off_y = 0
     
 
-    function getDynamapImageURL(x: number, z: number) {
-        let zoom_img = zoom_level <= LOWRES_ZOOM_THRESHOLD ? 2 : 1
+    function getDynamapImageURL(x: number, z: number, zoom_img: number) {
         if(zoom_img in cache && x in cache[zoom_img] && z in cache[zoom_img][x]) {
             return cache[zoom_img][x][z]
         }
@@ -61,7 +62,7 @@
     }
 
     function pointInView(x: number, y: number, off_x: number, off_y: number) {
-        return true
+        return true //TODO: Actually check if point is in canvas viewport
                  
     }
 
@@ -69,26 +70,27 @@
         if(!pointInView(x * IMG_SQUARE_DIM, z * IMG_SQUARE_DIM, off_x, off_y)) {
             return
         }
-        let img = getDynamapImageURL(x, z)
-        try {
-            ctx.save()
-            let zoom_img = zoom_level <= LOWRES_ZOOM_THRESHOLD ? 2 : 1
+        let zoom_img = zoom_level <= LOWRES_ZOOM_THRESHOLD ? 2 : 1
+        let zoom_upscale = smooth_zoom <= LOWRES_ZOOM_THRESHOLD ? 4 : 1
 
-            if (zoom_level <= LOWRES_ZOOM_THRESHOLD) {
-                ctx.scale(6, 6)
-            }
-            ctx.font = "48px sans-serif";
-            ctx.fillStyle = "white"
-            ctx.drawImage(img, 0, 0, IMG_SQUARE_DIM, IMG_SQUARE_DIM, x * IMG_SQUARE_DIM, z * IMG_SQUARE_DIM, IMG_SQUARE_DIM, IMG_SQUARE_DIM)
-            ctx.fillText(`${x}:${z}`, IMG_SQUARE_DIM, x * IMG_SQUARE_DIM, z)
-            ctx.restore()
+        let img = getDynamapImageURL(x, z, zoom_img)
+        try {
+            ctx.drawImage(img, 0, 0, IMG_SQUARE_DIM, IMG_SQUARE_DIM, x * zoom_upscale * IMG_SQUARE_DIM + off_x , z * zoom_upscale * IMG_SQUARE_DIM + off_y, IMG_SQUARE_DIM * zoom_upscale, IMG_SQUARE_DIM * zoom_upscale)
         } catch (error) {
             // do nothing we don't care
         }
 
     }
 
+    function drawPinpoint(ctx: CanvasRenderingContext2D, world_x: number, world_z: number) {
+        let zoom_counter = Math.min(zoom_level, 0.8)
+        if(location_pin_img)
+        ctx.drawImage(location_pin_img, world_x - 12 / zoom_counter - 1, world_z - 22 / zoom_counter, 24 / zoom_counter, 24 / zoom_counter)
+    } 
+
     function drawDynamap() {
+        let zoom_img = smooth_zoom <= LOWRES_ZOOM_THRESHOLD ? 2 : 1
+
         if(ctx == null) {
             return
         }
@@ -96,18 +98,20 @@
         ctx.fillRect(0, 0, 10000, 10000)
 
         ctx.save()
-        ctx.translate(window.innerWidth / 2, window.innerHeight / 2)
-        ctx.scale(zoom_level, zoom_level)
-        ctx.translate(off_x, off_y)
+        ctx.translate((window.innerWidth / 2), (window.innerHeight / 2))
+        ctx.scale(smooth_zoom, smooth_zoom)
 
-        let zoom_img = zoom_level <= LOWRES_ZOOM_THRESHOLD ? 2 : 1
         let x_bound = X_ABS_BOUND
         let z_bound = Z_ABS_BOUND
 
+        
         if(zoom_img == 2) {
             x_bound = X_ABS_BOUND_LOW
             z_bound = Z_ABS_BOUND_LOW
-        }
+        } 
+
+        ctx.translate(off_x, off_y)
+
 
 
         for (let x = -x_bound; x < x_bound; x++) {
@@ -115,7 +119,12 @@
                 drawImageTile(ctx, x, z, 0, 0)
             }
         }
+
+
+
+        drawPinpoint(ctx, -182, 245)
         ctx.restore()
+
 
 
 
@@ -150,13 +159,14 @@
             pan_vec_y = lerp(pan_vec_y, pan_end_y - pan_start_y, 0.2)
         }
 
-        off_x = prev_off_x + pan_vec_x / zoom_level
-        off_y = prev_off_y + pan_vec_y / zoom_level
+        off_x = prev_off_x + pan_vec_x / smooth_zoom
+        off_y = prev_off_y + pan_vec_y / smooth_zoom
 
 
     }
 
     function update() {
+        smooth_zoom = lerp(smooth_zoom, zoom_level, 0.3)
         handlePanning()
         if(shouldRerender) {
             drawDynamap()
@@ -172,6 +182,10 @@
     onMount(async () => {
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight
+
+        location_pin_img = new Image()
+        location_pin_img.src = location_pin
+
         ctx = canvas.getContext('2d')
         if(ctx) {
             ctx.imageSmoothingEnabled = false
@@ -197,8 +211,8 @@
                 pan_vec_y = 0
             }
             
-            if(zoom_level < 0.2) {
-                zoom_level = 0.2
+            if(zoom_level < 0.3) {
+                zoom_level = 0.3
                 
             }
 
@@ -260,6 +274,6 @@
     <p>Cliquez sur un point pour accéder à sa page service.</p>
 </div>
 
-<canvas bind:this={canvas} width="800" height="600">
+<canvas class="select-none" bind:this={canvas} width="800" height="600">
 
 </canvas>
